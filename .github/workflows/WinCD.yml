@@ -1,0 +1,180 @@
+name: WinCD
+
+on:
+  push:
+    branches:
+      - trunk
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Enter a tag or commit to package"
+        default: ""
+
+jobs:
+  windows_package:
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        arch: [amd64, amd64_x86] #, amd64_x86,amd64_arm64
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref }}
+          fetch-depth: 0
+
+      - name: Download And Copy Deps Source Code
+        run: |
+          $WebClient = New-Object System.Net.WebClient
+          $WebClient.DownloadFile("https://dlcdn.apache.org/apr/apr-1.7.4-win32-src.zip","C:\apr.zip")
+          $WebClient.DownloadFile("https://dlcdn.apache.org/apr/apr-util-1.6.3-win32-src.zip","C:\apr-util.zip")
+          $WebClient.DownloadFile("https://dlcdn.apache.org/apr/apr-iconv-1.2.2-win32-src.zip","C:\apr-iconv.zip")
+          $WebClient.DownloadFile("https://github.com/libexpat/libexpat/archive/refs/tags/R_2_6_2.zip","C:\libexpat.zip")
+          $WebClient.DownloadFile("https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.44/pcre2-10.44.zip","C:\pcre.zip")
+          $WebClient.DownloadFile("https://gitlab.gnome.org/GNOME/libxml2/-/archive/v2.13.2/libxml2-v2.13.2.zip","C:\libxml2.zip")
+          $WebClient.DownloadFile("https://www.lua.org/ftp/lua-5.4.7.tar.gz","C:\lua.tar.gz")
+          $WebClient.DownloadFile("https://www.zlib.net/zlib131.zip","C:\zlib.zip")
+          $WebClient.DownloadFile("https://github.com/akheron/jansson/archive/refs/tags/v2.14.zip","C:\jansson.zip")
+          $WebClient.DownloadFile("https://github.com/google/brotli/archive/refs/tags/v1.1.0.zip","C:\brotli.zip")
+          $WebClient.DownloadFile("https://github.com/nghttp2/nghttp2/archive/refs/tags/v1.62.1.zip","C:\nghttp2.zip")
+          $WebClient.DownloadFile("https://curl.se/download/curl-8.8.0.zip","C:\curl.zip")
+          7z x C:\apr.zip -o${{ github.workspace }}\srclib
+          7z x C:\apr-util.zip -o${{ github.workspace }}\srclib
+          7z x C:\apr-iconv.zip -o${{ github.workspace }}\srclib
+          7z x C:\libexpat.zip -o${{ github.workspace }}\srclib
+          7z x C:\pcre.zip -o${{ github.workspace }}\srclib
+          7z x C:\libxml2.zip -o${{ github.workspace }}\srclib
+          7z x C:\lua.tar.gz -so | 7z x -aoa -si -ttar -o${{ github.workspace }}\srclib
+          7z x C:\zlib.zip -o${{ github.workspace }}\srclib
+          7z x C:\jansson.zip -o${{ github.workspace }}\srclib
+          7z x C:\brotli.zip -o${{ github.workspace }}\srclib
+          7z x C:\nghttp2.zip -o${{ github.workspace }}\srclib
+          7z x C:\curl.zip -o${{ github.workspace }}\srclib
+          Move-Item -Path ${{ github.workspace }}\srclib\apr-1.7.4 -Destination ${{ github.workspace }}\srclib\apr
+          Move-Item -Path ${{ github.workspace }}\srclib\apr-util-1.6.3 -Destination ${{ github.workspace }}\srclib\apr-util
+          Move-Item -Path ${{ github.workspace }}\srclib\apr-iconv-1.2.2 -Destination ${{ github.workspace }}\srclib\apr-iconv
+          Move-Item -Path ${{ github.workspace }}\srclib\libexpat-R_2_6_2\expat -Destination ${{ github.workspace }}\srclib\expat
+          Move-Item -Path ${{ github.workspace }}\srclib\pcre2-10.44 -Destination ${{ github.workspace }}\srclib\pcre
+          Move-Item -Path ${{ github.workspace }}\srclib\libxml2-v2.13.2 -Destination ${{ github.workspace }}\srclib\libxml2
+          Move-Item -Path ${{ github.workspace }}\srclib\lua-5.4.7 -Destination ${{ github.workspace }}\srclib\lua
+          Move-Item -Path ${{ github.workspace }}\srclib\zlib-1.3.1 -Destination ${{ github.workspace }}\srclib\zlib
+          Move-Item -Path ${{ github.workspace }}\srclib\jansson-2.14 -Destination ${{ github.workspace }}\srclib\jansson
+          Move-Item -Path ${{ github.workspace }}\srclib\brotli-1.1.0 -Destination ${{ github.workspace }}\srclib\brotli
+          Move-Item -Path ${{ github.workspace }}\srclib\nghttp2-1.62.1 -Destination ${{ github.workspace }}\srclib\nghttp2
+          Move-Item -Path ${{ github.workspace }}\srclib\curl-8.8.0 -Destination ${{ github.workspace }}\srclib\curl
+          dir ${{ github.workspace }}\srclib\
+          
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Compile pcre With nmake
+        run: |
+          Set-Location -Path ${{ github.workspace }}\srclib\pcre
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_SHARED_LIBS=ON -DPCRE_BUILD_TESTS=OFF -DPCRE_BUILD_PCRECPP=OFF -DPCRE_BUILD_PCREGREP=OFF -DPCRE_SUPPORT_PCREGREP_JIT=OFF -DPCRE_SUPPORT_UTF=ON -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON -DPCRE_NEWLINE=CRLF -DINSTALL_MSVC_PDB=OFF ${{ github.workspace }}\srclib\pcre
+          nmake
+          nmake install
+
+      - name: Compile apr With nmake
+        run: |
+          Set-Location -Path ${{ github.workspace }}\srclib\apr
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMIN_WINDOWS_VER=0x0600 -DAPR_HAVE_IPV6=ON -DAPR_INSTALL_PRIVATE_H=ON -DAPR_BUILD_TESTAPR=OFF -DINSTALL_PDB=OFF ${{ github.workspace }}\srclib\apr
+          nmake
+          nmake install
+
+      - name: Compile libexpat With nmake
+        run: |
+          Set-Location -Path ${{ github.workspace }}\srclib\expat
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }} -DCMAKE_BUILD_TYPE=RelWithDebInfo ${{ github.workspace }}\srclib\expat
+          nmake
+          nmake install
+
+      - name: Compile apr-util With nmake
+        run: |
+          Set-Location -Path ${{ github.workspace }}\srclib\apr-util
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }} -DAPU_USE_EXPAT=OFF -DAPU_HAVE_CRYPTO=ON ${{ github.workspace }}\srclib\apr-util
+          nmake
+          nmake install
+
+      #- name: Compile apr-iconv With nmake
+      #  run: |
+      #    Set-Location -Path ${{ github.workspace }}\srclib\apr-iconv
+      #    nmake /f apriconv.mak CFG="apriconv - x64 Debug"
+      #    nmake /f libapriconv.mak CFG="libapriconv - x64 Debug"
+      #    nmake /f Makefile.win BUILD_MODE="x64 RelWithDebInfo" BIND_MODE="shared"
+
+      - name: Compile lua With nmake
+        run: |
+          Set-Location -Path ${{ github.workspace }}\srclib\lua
+          $WebClient = New-Object System.Net.WebClient
+          $WebClient.DownloadFile("https://pastebin.com/raw/i5aSxa2G","${{ github.workspace }}\srclib\lua\CMakeLists.txt")
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }} -DCMAKE_BUILD_TYPE=Debug ${{ github.workspace }}\srclib\lua
+          nmake
+          nmake install
+
+      - name: Compile zlib nmake
+        run: |
+          Set-Location -Path ${{ github.workspace }}\srclib\zlib
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\ -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DINSTALL_PKGCONFIG_DIR=${{ github.workspace }}/lib/pkgconfig  ${{ github.workspace }}\srclib\zlib
+          nmake
+          nmake install
+
+      - name: Compile libxml With nmake
+        run: |
+          Set-Location -Path ${{ github.workspace }}\srclib\libxml2\win32
+          cscript configure.js compiler=msvc prefix=${{ github.workspace }} include=${{ github.workspace }}\include lib=${{ github.workspace }}\lib iconv=no python=no zlib=yes
+          nmake /f Makefile.msvc
+          nmake /f Makefile.msvc install-dist
+
+      - name: Compile jansson nmake
+        run: |
+          Set-Location -Path ${{ github.workspace }}\srclib\jansson
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\ -DCMAKE_BUILD_TYPE=Release -DJANSSON_BUILD_SHARED_LIBS=ON -DJANSSON_BUILD_DOCS=OFF -DJANSSON_INSTALL_CMAKE_DIR=lib/cmake/jansson ${{ github.workspace }}\srclib\jansson
+          nmake
+          nmake install
+
+      - name: Compile brotli nmake
+        run: |
+          Set-Location -Path ${{ github.workspace }}\srclib\brotli
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\ -DCMAKE_BUILD_TYPE=Release ${{ github.workspace }}\srclib\brotli
+          nmake
+          nmake install
+
+      - name: Compile nghttp2 nmake
+        run: |
+          Set-Location -Path ${{ github.workspace }}\srclib\nghttp2
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\ -DCMAKE_BUILD_TYPE=Release -DSTATIC_LIB_SUFFIX=_static -DENABLE_LIB_ONLY=ON ${{ github.workspace }}\srclib\nghttp2
+          nmake
+          nmake install
+
+      - name: Compile curl nmake
+        run: |
+          Set-Location -Path ${{ github.workspace }}\srclib\curl
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\ -DCMAKE_BUILD_TYPE=Release -DCURL_USE_OPENSSL=%CURL_USE_OPENSSL% -DCURL_USE_SCHANNEL=ON -DCURL_WINDOWS_SSPI=ON -DCURL_BROTLI=ON -DUSE_NGHTTP2=ON -DHAVE_LDAP_SSL=ON -DENABLE_UNICODE=ON -DCURL_STATIC_CRT=OFF -DUSE_WIN32_CRYPTO=ON -DBUILD_SHARED_LIBS=ON ${{ github.workspace }}\srclib\curl
+          nmake
+          nmake install
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\ -DCMAKE_BUILD_TYPE=Release -DCURL_USE_OPENSSL=%CURL_USE_OPENSSL% -DCURL_USE_SCHANNEL=ON -DCURL_WINDOWS_SSPI=ON -DCURL_BROTLI=ON -DUSE_NGHTTP2=ON -DHAVE_LDAP_SSL=ON -DENABLE_UNICODE=ON -DCURL_STATIC_CRT=OFF -DUSE_WIN32_CRYPTO=ON -DBUILD_SHARED_LIBS=OFF ${{ github.workspace }}\srclib\curl
+          nmake
+          nmake install
+
+      - name: Compile Apache HTTPD With nmake
+        run: |
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\ -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_MODULES=i -DINSTALL_PDB=OFF -DAPR_INCLUDE_DIR=D:/a/httpd/httpd/include -DAPR_LIBRARIES="D:/a/httpd/httpd/lib/libapr-1.lib;D:/a/httpd/httpd/lib/libaprutil-1.lib" ${{ github.workspace }} 
+          nmake
+          nmake install
+
+      - name: Make Zip From Built Files
+        if: ${{ matrix.arch== 'amd64' }}
+        run: |
+          7z a ${{ github.workspace }}\httpd-win64-vs22.zip ${{ github.workspace }}/lib* ${{ github.workspace }}/bin* ${{ github.workspace }}/modules* ${{ github.workspace }}/include* ${{ github.workspace }}/manual*
+
+      - name: Make Zip From Built Files
+        if: ${{ matrix.arch== 'amd64_x86' }}
+        run: |
+          7z a ${{ github.workspace }}\httpd-${{  github.ref_name }}-win32-vs22.zip ${{ github.workspace }}/lib* ${{ github.workspace }}/bin* ${{ github.workspace }}/modules* ${{ github.workspace }}/include* ${{ github.workspace }}/manual*
+  
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apache-httpd-${{ matrix.arch }}
+          path: ${{ github.workspace }}/*.zip
