@@ -71,28 +71,28 @@ jobs:
       - name: Compile pcre With nmake
         run: |
           Set-Location -Path ${{ github.workspace }}\srclib\pcre
-          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_SHARED_LIBS=ON -DPCRE_BUILD_TESTS=OFF -DPCRE_BUILD_PCRECPP=OFF -DPCRE_BUILD_PCREGREP=OFF -DPCRE_SUPPORT_PCREGREP_JIT=OFF -DPCRE_SUPPORT_UTF=ON -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON -DPCRE_NEWLINE=CRLF -DINSTALL_MSVC_PDB=OFF ${{ github.workspace }}\srclib\pcre
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_SHARED_LIBS=ON -DPCRE_BUILD_TESTS=OFF -DPCRE_BUILD_PCRECPP=OFF -DPCRE_BUILD_PCREGREP=OFF -DPCRE_SUPPORT_PCREGREP_JIT=OFF -DPCRE_SUPPORT_UTF=ON -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON -DPCRE_NEWLINE=CRLF -DINSTALL_MSVC_PDB=OFF ${{ github.workspace }}\srclib\pcre
           nmake
           nmake install
 
       - name: Compile apr With nmake
         run: |
           Set-Location -Path ${{ github.workspace }}\srclib\apr
-          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMIN_WINDOWS_VER=0x0600 -DAPR_HAVE_IPV6=ON -DAPR_INSTALL_PRIVATE_H=ON -DAPR_BUILD_TESTAPR=OFF -DINSTALL_PDB=OFF ${{ github.workspace }}\srclib\apr
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMIN_WINDOWS_VER=0x0600 -DAPR_HAVE_IPV6=ON -DAPR_INSTALL_PRIVATE_H=ON -DAPR_BUILD_TESTAPR=OFF -DINSTALL_PDB=OFF ${{ github.workspace }}\srclib\apr
           nmake
           nmake install
 
       - name: Compile libexpat With nmake
         run: |
           Set-Location -Path ${{ github.workspace }}\srclib\expat
-          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }} -DCMAKE_BUILD_TYPE=RelWithDebInfo ${{ github.workspace }}\srclib\expat
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\build -DCMAKE_BUILD_TYPE=RelWithDebInfo ${{ github.workspace }}\srclib\expat
           nmake
           nmake install
 
       - name: Compile apr-util With nmake
         run: |
           Set-Location -Path ${{ github.workspace }}\srclib\apr-util
-          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }} -DAPU_USE_EXPAT=OFF -DAPU_HAVE_CRYPTO=ON ${{ github.workspace }}\srclib\apr-util
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\build -DAPU_USE_EXPAT=OFF -DAPU_HAVE_CRYPTO=ON ${{ github.workspace }}\srclib\apr-util
           nmake
           nmake install
 
@@ -107,74 +107,103 @@ jobs:
         run: |
           Set-Location -Path ${{ github.workspace }}\srclib\lua
           $WebClient = New-Object System.Net.WebClient
-          $WebClient.DownloadFile("https://pastebin.com/raw/i5aSxa2G","${{ github.workspace }}\srclib\lua\CMakeLists.txt")
-          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }} -DCMAKE_BUILD_TYPE=Debug ${{ github.workspace }}\srclib\lua
+          $WebClient.DownloadFile("https://raw.githubusercontent.com/doadin/Lua-CMake/main/CMakeLists.txt%20for%20LUA%205.4","${{ github.workspace }}\srclib\lua\CMakeLists.txt")
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\build -DCMAKE_BUILD_TYPE=Debug ${{ github.workspace }}\srclib\lua
           nmake
           nmake install
 
       - name: Compile zlib nmake
         run: |
           Set-Location -Path ${{ github.workspace }}\srclib\zlib
-          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\ -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DINSTALL_PKGCONFIG_DIR=${{ github.workspace }}/lib/pkgconfig  ${{ github.workspace }}\srclib\zlib
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\build\ -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DINSTALL_PKGCONFIG_DIR=${{ github.workspace }}/lib/pkgconfig  ${{ github.workspace }}\srclib\zlib
           nmake
           nmake install
 
       - name: Compile libxml With nmake
         run: |
           Set-Location -Path ${{ github.workspace }}\srclib\libxml2\win32
-          cscript configure.js compiler=msvc prefix=${{ github.workspace }} include=${{ github.workspace }}\include lib=${{ github.workspace }}\lib iconv=no python=no zlib=yes
+          cscript configure.js compiler=msvc prefix=${{ github.workspace }}\build include=${{ github.workspace }}\include lib=${{ github.workspace }}\lib iconv=no python=no zlib=yes
           nmake /f Makefile.msvc
           nmake /f Makefile.msvc install-dist
 
       - name: Compile jansson nmake
         run: |
           Set-Location -Path ${{ github.workspace }}\srclib\jansson
-          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\ -DCMAKE_BUILD_TYPE=Release -DJANSSON_BUILD_SHARED_LIBS=ON -DJANSSON_BUILD_DOCS=OFF -DJANSSON_INSTALL_CMAKE_DIR=lib/cmake/jansson ${{ github.workspace }}\srclib\jansson
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\build\ -DCMAKE_BUILD_TYPE=Release -DJANSSON_BUILD_SHARED_LIBS=ON -DJANSSON_BUILD_DOCS=OFF -DJANSSON_INSTALL_CMAKE_DIR=lib/cmake/jansson ${{ github.workspace }}\srclib\jansson
           nmake
           nmake install
 
       - name: Compile brotli nmake
         run: |
           Set-Location -Path ${{ github.workspace }}\srclib\brotli
-          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\ -DCMAKE_BUILD_TYPE=Release ${{ github.workspace }}\srclib\brotli
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\build\ -DCMAKE_BUILD_TYPE=Release ${{ github.workspace }}\srclib\brotli
           nmake
           nmake install
 
       - name: Compile nghttp2 nmake
         run: |
           Set-Location -Path ${{ github.workspace }}\srclib\nghttp2
-          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\ -DCMAKE_BUILD_TYPE=Release -DSTATIC_LIB_SUFFIX=_static -DENABLE_LIB_ONLY=ON ${{ github.workspace }}\srclib\nghttp2
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\build\ -DCMAKE_BUILD_TYPE=Release -DSTATIC_LIB_SUFFIX=_static -DENABLE_LIB_ONLY=ON ${{ github.workspace }}\srclib\nghttp2
           nmake
           nmake install
 
       - name: Compile curl nmake
         run: |
           Set-Location -Path ${{ github.workspace }}\srclib\curl
-          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\ -DCMAKE_BUILD_TYPE=Release -DCURL_USE_OPENSSL=%CURL_USE_OPENSSL% -DCURL_USE_SCHANNEL=ON -DCURL_WINDOWS_SSPI=ON -DCURL_BROTLI=ON -DUSE_NGHTTP2=ON -DHAVE_LDAP_SSL=ON -DENABLE_UNICODE=ON -DCURL_STATIC_CRT=OFF -DUSE_WIN32_CRYPTO=ON -DBUILD_SHARED_LIBS=ON ${{ github.workspace }}\srclib\curl
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\build\ -DCMAKE_BUILD_TYPE=Release -DCURL_USE_OPENSSL=%CURL_USE_OPENSSL% -DCURL_USE_SCHANNEL=ON -DCURL_WINDOWS_SSPI=ON -DCURL_BROTLI=ON -DUSE_NGHTTP2=ON -DHAVE_LDAP_SSL=ON -DENABLE_UNICODE=ON -DCURL_STATIC_CRT=OFF -DUSE_WIN32_CRYPTO=ON -DBUILD_SHARED_LIBS=ON ${{ github.workspace }}\srclib\curl
           nmake
           nmake install
-          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\ -DCMAKE_BUILD_TYPE=Release -DCURL_USE_OPENSSL=%CURL_USE_OPENSSL% -DCURL_USE_SCHANNEL=ON -DCURL_WINDOWS_SSPI=ON -DCURL_BROTLI=ON -DUSE_NGHTTP2=ON -DHAVE_LDAP_SSL=ON -DENABLE_UNICODE=ON -DCURL_STATIC_CRT=OFF -DUSE_WIN32_CRYPTO=ON -DBUILD_SHARED_LIBS=OFF ${{ github.workspace }}\srclib\curl
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\build\ -DCMAKE_BUILD_TYPE=Release -DCURL_USE_OPENSSL=%CURL_USE_OPENSSL% -DCURL_USE_SCHANNEL=ON -DCURL_WINDOWS_SSPI=ON -DCURL_BROTLI=ON -DUSE_NGHTTP2=ON -DHAVE_LDAP_SSL=ON -DENABLE_UNICODE=ON -DCURL_STATIC_CRT=OFF -DUSE_WIN32_CRYPTO=ON -DBUILD_SHARED_LIBS=OFF ${{ github.workspace }}\srclib\curl
           nmake
           nmake install
 
       - name: Compile Apache HTTPD With nmake
         run: |
-          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\ -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_MODULES=i -DINSTALL_PDB=OFF -DAPR_INCLUDE_DIR=D:/a/httpd/httpd/include -DAPR_LIBRARIES="D:/a/httpd/httpd/lib/libapr-1.lib;D:/a/httpd/httpd/lib/libaprutil-1.lib" ${{ github.workspace }} 
+          cmake -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}\build\ -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_MODULES=i -DINSTALL_PDB=OFF -DAPR_INCLUDE_DIR=D:/a/httpd/httpd/build/include -DAPR_LIBRARIES="D:/a/httpd/httpd/build/lib/libapr-1.lib;D:/a/httpd/httpd/build/lib/libaprutil-1.lib" ${{ github.workspace }} 
           nmake
           nmake install
 
       - name: Make Zip From Built Files
         if: ${{ matrix.arch== 'amd64' }}
         run: |
-          7z a ${{ github.workspace }}\httpd-win64-vs22.zip ${{ github.workspace }}/lib* ${{ github.workspace }}/bin* ${{ github.workspace }}/modules* ${{ github.workspace }}/include* ${{ github.workspace }}/manual*
+          7z a ${{ github.workspace }}\httpd-${{  github.ref_name }}-win64-vs22.zip ${{ github.workspace }}/build/bin ${{ github.workspace }}/build/cgi-bin ${{ github.workspace }}/build/conf ${{ github.workspace }}/build/error ${{ github.workspace }}/build/htdocs ${{ github.workspace }}/build/icons ${{ github.workspace }}/build/include ${{ github.workspace }}/build/lib ${{ github.workspace }}/build/logs ${{ github.workspace }}/build/manual ${{ github.workspace }}/build/modules
 
       - name: Make Zip From Built Files
         if: ${{ matrix.arch== 'amd64_x86' }}
         run: |
-          7z a ${{ github.workspace }}\httpd-${{  github.ref_name }}-win32-vs22.zip ${{ github.workspace }}/lib* ${{ github.workspace }}/bin* ${{ github.workspace }}/modules* ${{ github.workspace }}/include* ${{ github.workspace }}/manual*
+          7z a ${{ github.workspace }}\httpd-${{  github.ref_name }}-win32-vs22.zip ${{ github.workspace }}/build/bin ${{ github.workspace }}/build/cgi-bin ${{ github.workspace }}/build/conf ${{ github.workspace }}/build/error ${{ github.workspace }}/build/htdocs ${{ github.workspace }}/build/icons ${{ github.workspace }}/build/include ${{ github.workspace }}/build/lib ${{ github.workspace }}/build/logs ${{ github.workspace }}/build/manual ${{ github.workspace }}/build/modules
   
 
       - uses: actions/upload-artifact@v4
+        if: ${{ matrix.arch== 'amd64' }}
         with:
-          name: apache-httpd-${{ matrix.arch }}
-          path: ${{ github.workspace }}/*.zip
+          name: httpd-${{  github.ref_name }}-win64-vs22
+          path: |
+            ${{ github.workspace }}/build/bin
+            ${{ github.workspace }}/build/cgi-bin
+            ${{ github.workspace }}/build/conf
+            ${{ github.workspace }}/build/error
+            ${{ github.workspace }}/build/htdocs
+            ${{ github.workspace }}/build/icons
+            ${{ github.workspace }}/build/include
+            ${{ github.workspace }}/build/lib
+            ${{ github.workspace }}/build/logs
+            ${{ github.workspace }}/build/manual
+            ${{ github.workspace }}/build/modules
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ matrix.arch== 'amd64_x86' }}
+        with:
+          name: httpd-${{  github.ref_name }}-win32-vs22
+          path: |
+            ${{ github.workspace }}/build/bin
+            ${{ github.workspace }}/build/cgi-bin
+            ${{ github.workspace }}/build/conf
+            ${{ github.workspace }}/build/error
+            ${{ github.workspace }}/build/htdocs
+            ${{ github.workspace }}/build/icons
+            ${{ github.workspace }}/build/include
+            ${{ github.workspace }}/build/lib
+            ${{ github.workspace }}/build/logs
+            ${{ github.workspace }}/build/manual
+            ${{ github.workspace }}/build/modules
