@@ -3,7 +3,7 @@ name: WinCD
 on:
   push:
     branches:
-      - trunk
+      - 2.4.x
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -166,12 +166,12 @@ jobs:
       - name: Make Zip From Built Files
         if: ${{ matrix.arch== 'amd64' }}
         run: |
-          7z a ${{ github.workspace }}\httpd-${{  github.ref_name }}-win64-vs22.zip ${{ github.workspace }}/build/bin ${{ github.workspace }}/build/cgi-bin ${{ github.workspace }}/build/conf ${{ github.workspace }}/build/error ${{ github.workspace }}/build/htdocs ${{ github.workspace }}/build/icons ${{ github.workspace }}/build/include ${{ github.workspace }}/build/lib ${{ github.workspace }}/build/logs ${{ github.workspace }}/build/manual ${{ github.workspace }}/build/modules
+          7z a ${{ github.workspace }}\httpd-${{  github.ref_name }}-win64-vs22.zip ${{ github.workspace }}/build/bin ${{ github.workspace }}/build/cgi-bin ${{ github.workspace }}/build/conf ${{ github.workspace }}/build/error ${{ github.workspace }}/build/htdocs ${{ github.workspace }}/build/icons ${{ github.workspace }}/build/include ${{ github.workspace }}/build/lib ${{ github.workspace }}/build/logs ${{ github.workspace }}/build/manual ${{ github.workspace }}/build/modules ${{ github.workspace }}/CHANGES
 
       - name: Make Zip From Built Files
         if: ${{ matrix.arch== 'amd64_x86' }}
         run: |
-          7z a ${{ github.workspace }}\httpd-${{  github.ref_name }}-win32-vs22.zip ${{ github.workspace }}/build/bin ${{ github.workspace }}/build/cgi-bin ${{ github.workspace }}/build/conf ${{ github.workspace }}/build/error ${{ github.workspace }}/build/htdocs ${{ github.workspace }}/build/icons ${{ github.workspace }}/build/include ${{ github.workspace }}/build/lib ${{ github.workspace }}/build/logs ${{ github.workspace }}/build/manual ${{ github.workspace }}/build/modules
+          7z a ${{ github.workspace }}\httpd-${{  github.ref_name }}-win32-vs22.zip ${{ github.workspace }}/build/bin ${{ github.workspace }}/build/cgi-bin ${{ github.workspace }}/build/conf ${{ github.workspace }}/build/error ${{ github.workspace }}/build/htdocs ${{ github.workspace }}/build/icons ${{ github.workspace }}/build/include ${{ github.workspace }}/build/lib ${{ github.workspace }}/build/logs ${{ github.workspace }}/build/manual ${{ github.workspace }}/build/modules ${{ github.workspace }}/CHANGES
   
 
       - uses: actions/upload-artifact@v4
@@ -190,6 +190,7 @@ jobs:
             ${{ github.workspace }}/build/logs
             ${{ github.workspace }}/build/manual
             ${{ github.workspace }}/build/modules
+            ${{ github.workspace }}/CHANGES
 
       - uses: actions/upload-artifact@v4
         if: ${{ matrix.arch== 'amd64_x86' }}
@@ -207,3 +208,4 @@ jobs:
             ${{ github.workspace }}/build/logs
             ${{ github.workspace }}/build/manual
             ${{ github.workspace }}/build/modules
+            ${{ github.workspace }}/CHANGES
